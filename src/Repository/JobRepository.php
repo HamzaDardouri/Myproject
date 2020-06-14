@@ -5,6 +5,8 @@ namespace App\Repository;
 use App\Entity\Job;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use App\Entity\Category;
+use Doctrine\ORM\AbstractQuery;
 
 class JobRepository extends EntityRepository
 {
@@ -17,7 +19,9 @@ class JobRepository extends EntityRepository
     {
         $qb = $this->createQueryBuilder('j')
             ->where('j.expiresAt > :date')
+            ->andWhere('j.activated = :activated')
             ->setParameter('date', new \DateTime())
+            ->setParameter('activated', true)
             ->orderBy('j.expiresAt', 'DESC');
 
         if ($categoryId) {
@@ -40,9 +44,27 @@ class JobRepository extends EntityRepository
         return $this->createQueryBuilder('j')
             ->where('j.id = :id')
             ->andWhere('j.expiresAt > :date')
+            ->andWhere('j.activated = :activated')
             ->setParameter('id', $id)
             ->setParameter('date', new \DateTime())
+            ->setParameter('activated', true)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+    /**
+     * @param Category $category
+     *
+     * @return AbstractQuery
+     */
+    public function getPaginatedActiveJobsByCategoryQuery(Category $category) : AbstractQuery
+    {
+        return $this->createQueryBuilder('j')
+            ->where('j.category = :category')
+            ->andWhere('j.expiresAt > :date')
+            ->andWhere('j.activated = :activated')
+            ->setParameter('category', $category)
+            ->setParameter('date', new \DateTime())
+            ->setParameter('activated', true)
+            ->getQuery();
     }
 }
